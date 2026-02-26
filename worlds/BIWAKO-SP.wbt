@@ -1,0 +1,116 @@
+#VRML_SIM R2021b utf8
+WorldInfo {
+  basicTimeStep 10
+  FPS 30
+  coordinateSystem "NUE"
+  gpsCoordinateSystem "WGS84"
+  gpsReference 135.924 35.0491 0
+}
+Viewpoint {
+  orientation 1 0 0 4.71238898038469
+  position -0.0204408227825148 10.01267941927437 -0.13744330828610524
+  followType "None"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF SWIMMING_POOL SolidPipe {
+  translation 0 0.25 0
+  height 1.5
+  radius 500
+  subdivision 144
+  appearance DEF DARK_BROWN PBRAppearance {
+    baseColor 0.501961 0.337255 0.2
+    roughness 1.1102230246251565e-16
+    metalness 0
+  }
+}
+DEF STILL_WATER Fluid {
+  translation 0 0.2 0
+  children [
+    DEF WATER_SHAPE Shape {
+      appearance DEF WATER_APPEARANCE PBRAppearance {
+        baseColor 0 0.501961 1
+        transparency 0.5
+        roughness 1.1102230246251565e-16
+        metalness 0
+      }
+      geometry Cylinder {
+        height 1
+        radius 499
+        subdivision 12
+      }
+    }
+  ]
+  name "swimming pool"
+  boundingObject USE WATER_SHAPE
+  locked TRUE
+}
+DEF SWIMMING_POOL_BOTTOM Transform {
+  translation 0 0.02 0
+  children [
+    Shape {
+      appearance USE DARK_BROWN
+      geometry Cylinder {
+        height 0.02
+        radius 499
+        subdivision 24
+      }
+    }
+  ]
+}
+Floor {
+}
+BIWAKO8 {
+  translation 0 0.6 0
+  rotation 0 1 0 2.35618
+  controller "BIWAKO-SP"
+}
+DEF WP1 Solid {
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        roughness 1
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.3
+        radius 1.5
+      }
+    }
+  ]
+}
+
+DEF WP2 Solid {
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 1 0
+        roughness 1
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.3
+        radius 2.5
+      }
+    }
+  ]
+}
+
+DEF WP3 Solid {
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 0 1
+        roughness 1
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.3
+        radius 5
+      }
+    }
+  ]
+}

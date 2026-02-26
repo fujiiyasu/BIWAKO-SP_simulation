@@ -1,0 +1,762 @@
+#VRML_SIM R2021b utf8
+# BIWAKO-8 Autonomous Surface Robot
+# Fixed arm structure (no HingeJoint / servo / U-bracket)
+
+PROTO BIWAKO8 [
+  field SFVec3f    translation  0 0 0
+  field SFRotation rotation     0 1 0 0
+  field SFString   controller   "BIWAKO-8"
+  field SFBool     supervisor   TRUE
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    controller IS controller
+    supervisor IS supervisor
+
+    children [
+
+      # ── Main body (chamber) ──────────────────────────────────────
+      DEF CHAMBER Solid {
+        children [
+          DEF CHAMBER_SHAPE Shape {
+            appearance PBRAppearance {
+              baseColor 0.3 0.3 0.3
+              roughness 1
+              metalness 0
+            }
+            geometry Cylinder {
+              height 0.33
+              radius 0.05
+            }
+          }
+        ]
+        immersionProperties [
+          ImmersionProperties {
+            fluidName "swimming pool"
+            dragForceCoefficients 0.1 0 0
+            dragTorqueCoefficients 0.001 0 0
+            viscousResistanceTorqueCoefficient 0.005
+          }
+        ]
+        boundingObject USE CHAMBER_SHAPE
+        physics Physics {
+          density 800
+          mass 2
+          centerOfMass [ 0 -0.3 0 ]
+          inertiaMatrix [ 1 1 1  0 0 0 ]
+          damping Damping {}
+        }
+      }
+
+      # ── Solar panel (500x500mm, 3mm thick, 150x150mm hole at center) ──
+      DEF SOLAR_PANEL Solid {
+        translation 0 0.109 0
+        children [
+          # Top plate  (500 x 175 mm)
+          DEF PANEL_TOP Shape {
+            appearance PBRAppearance {
+              baseColor 0.1 0.1 0.5
+              roughness 0.5
+              metalness 0.3
+            }
+            geometry Box { size 0.5 0.003 0.175 }
+          }
+          Transform {
+            translation 0 0 -0.1625
+            children [ USE PANEL_TOP ]
+          }
+          # Bottom plate (500 x 175 mm)
+          DEF PANEL_BOTTOM Shape {
+            appearance PBRAppearance {
+              baseColor 0.1 0.1 0.5
+              roughness 0.5
+              metalness 0.3
+            }
+            geometry Box { size 0.5 0.003 0.175 }
+          }
+          Transform {
+            translation 0 0 0.1625
+            children [ USE PANEL_BOTTOM ]
+          }
+          # Left plate  (175 x 150 mm)
+          DEF PANEL_LEFT Shape {
+            appearance PBRAppearance {
+              baseColor 0.1 0.1 0.5
+              roughness 0.5
+              metalness 0.3
+            }
+            geometry Box { size 0.175 0.003 0.15 }
+          }
+          Transform {
+            translation -0.1625 0 0
+            children [ USE PANEL_LEFT ]
+          }
+          # Right plate (175 x 150 mm)
+          DEF PANEL_RIGHT Shape {
+            appearance PBRAppearance {
+              baseColor 0.1 0.1 0.5
+              roughness 0.5
+              metalness 0.3
+            }
+            geometry Box { size 0.175 0.003 0.15 }
+          }
+          Transform {
+            translation 0.1625 0 0
+            children [ USE PANEL_RIGHT ]
+          }
+        ]
+        name "solar_panel"
+        boundingObject Group {
+          children [
+            Transform {
+              translation 0 0 -0.1625
+              children [ Box { size 0.5 0.003 0.175 } ]
+            }
+            Transform {
+              translation 0 0 0.1625
+              children [ Box { size 0.5 0.003 0.175 } ]
+            }
+            Transform {
+              translation -0.1625 0 0
+              children [ Box { size 0.175 0.003 0.15 } ]
+            }
+            Transform {
+              translation 0.1625 0 0
+              children [ Box { size 0.175 0.003 0.15 } ]
+            }
+          ]
+        }
+        physics Physics {
+          density -1
+          mass 1.0
+          centerOfMass [ 0 0 0 ]
+        }
+      }
+
+      # ── Arm 1 (South, -Z direction) ──────────────────────────────
+      DEF ARM1 Solid {
+        translation 0 0.1 -0.17
+        rotation 0 1 0 0
+        children [
+          # Arm bar (single, 0.3 m)
+          Shape {
+            appearance DEF ALUMINIUM PBRAppearance {
+              baseColor 0.9 0.9 0.9
+              roughness 1
+            }
+            geometry Box { size 0.015 0.015 0.3 }
+          }
+          # Thruster body (0.2 m from arm root)
+          DEF THRUSTER_BODY1 Solid {
+            translation 0 -0.058 -0.05
+            rotation 0 0 1 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 0
+                  metalness 0
+                }
+                geometry Cylinder { height 0.043  radius 0.047 }
+              }
+            ]
+            name "thruster_body1"
+            boundingObject Cylinder { height 0.043  radius 0.047 }
+            physics Physics { density -1  mass 0.344 }
+          }
+          # Propeller
+          Propeller {
+            centerOfThrust 0 -0.058 -0.05
+            thrustConstants 0.03 0.01
+            torqueConstants 0.0005 1
+            device RotationalMotor {
+              name "thruster1"
+              acceleration 10000
+              consumptionFactor 1
+              controlPID 10000 0 0
+              maxVelocity 20
+              maxTorque 30
+            }
+            fastHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "fast_helix1"
+            }
+            slowHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "slow_helix1"
+            }
+          }
+          # Buoy (beyond thruster, at arm tip)
+          DEF BUOY11 Solid {
+            translation 0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0.5 1
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy11"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+          DEF BUOY12 Solid {
+            translation -0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0.5 1
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy12"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+        ]
+        name "arm1"
+        boundingObject Box { size 0.015 0.015 0.3 }
+        physics Physics { density -1  mass 0.03 }
+      }
+
+      # ── Arm 2 (West, -X direction) ──────────────────────────────
+      DEF ARM2 Solid {
+        translation -0.17 0.1 0
+        rotation 0 1 0 1.5708
+        children [
+          # Arm bar (single, 0.3 m)
+          Shape {
+            appearance USE ALUMINIUM
+            geometry Box { size 0.015 0.015 0.3 }
+          }
+          # Thruster body (0.2 m from arm root)
+          DEF THRUSTER_BODY2 Solid {
+            translation 0 -0.058 -0.05
+            rotation 0 0 1 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 0
+                  metalness 0
+                }
+                geometry Cylinder { height 0.043  radius 0.047 }
+              }
+            ]
+            name "thruster_body2"
+            boundingObject Cylinder { height 0.043  radius 0.047 }
+            physics Physics { density -1  mass 0.344 }
+          }
+          # Propeller
+          Propeller {
+            centerOfThrust 0 -0.058 -0.05
+            thrustConstants 0.03 0.01
+            torqueConstants 0.0005 1
+            device RotationalMotor {
+              name "thruster2"
+              acceleration 10000
+              consumptionFactor 1
+              controlPID 10000 0 0
+              maxVelocity 20
+              maxTorque 30
+            }
+            fastHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "fast_helix2"
+            }
+            slowHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "slow_helix2"
+            }
+          }
+          # Buoy (beyond thruster, at arm tip)
+          DEF BUOY21 Solid {
+            translation 0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 1 0.3
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy21"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+          DEF BUOY22 Solid {
+            translation -0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 1 0.3
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy22"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+        ]
+        name "arm2"
+        boundingObject Box { size 0.015 0.015 0.3 }
+        physics Physics { density -1  mass 0.03 }
+      }
+
+      # ── Arm 3 (North, +Z direction) ──────────────────────────────
+      DEF ARM3 Solid {
+        translation 0 0.1 0.17
+        rotation 0 1 0 3.14159
+        children [
+          # Arm bar (single, 0.3 m)
+          Shape {
+            appearance USE ALUMINIUM
+            geometry Box { size 0.015 0.015 0.3 }
+          }
+          # Thruster body (0.2 m from arm root)
+          DEF THRUSTER_BODY3 Solid {
+            translation 0 -0.058 -0.05
+            rotation 0 0 1 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 0
+                  metalness 0
+                }
+                geometry Cylinder { height 0.043  radius 0.047 }
+              }
+            ]
+            name "thruster_body3"
+            boundingObject Cylinder { height 0.043  radius 0.047 }
+            physics Physics { density -1  mass 0.344 }
+          }
+          # Propeller
+          Propeller {
+            centerOfThrust 0 -0.058 -0.05
+            thrustConstants 0.03 0.01
+            torqueConstants 0.0005 1
+            device RotationalMotor {
+              name "thruster3"
+              acceleration 10000
+              consumptionFactor 1
+              controlPID 10000 0 0
+              maxVelocity 20
+              maxTorque 30
+            }
+            fastHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "fast_helix3"
+            }
+            slowHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "slow_helix3"
+            }
+          }
+          # Buoy (beyond thruster, at arm tip)
+          DEF BUOY31 Solid {
+            translation 0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 1 0.2 0.8
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy31"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+          # Buoy (beyond thruster, at arm tip)
+          DEF BUOY32 Solid {
+            translation -0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 1 0.2 0.8
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy32"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+        ]
+        name "arm3"
+        boundingObject Box { size 0.015 0.015 0.3 }
+        physics Physics { density -1  mass 0.03 }
+      }
+
+      # ── Arm 4 (East, +X direction) ──────────────────────────────
+      DEF ARM4 Solid {
+        translation 0.17 0.1 0
+        rotation 0 1 0 -1.5707953071795862
+        children [
+          # Arm bar (single, 0.3 m)
+          Shape {
+            appearance USE ALUMINIUM
+            geometry Box { size 0.015 0.015 0.3 }
+          }
+          # Thruster body (0.2 m from arm root)
+          DEF THRUSTER_BODY4 Solid {
+            translation 0 -0.058 -0.05
+            rotation 0 0 1 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 0
+                  metalness 0
+                }
+                geometry Cylinder { height 0.043  radius 0.047 }
+              }
+            ]
+            name "thruster_body4"
+            boundingObject Cylinder { height 0.043  radius 0.047 }
+            physics Physics { density -1  mass 0.344 }
+          }
+          # Propeller
+          Propeller {
+            centerOfThrust 0 -0.058 -0.05
+            thrustConstants 0.03 0.01
+            torqueConstants 0.0005 1
+            device RotationalMotor {
+              name "thruster4"
+              acceleration 10000
+              consumptionFactor 1
+              controlPID 10000 0 0
+              maxVelocity 20
+              maxTorque 30
+            }
+            fastHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "fast_helix4"
+            }
+            slowHelix Solid {
+              translation 0 -0.058 -0.05
+              rotation 0 0 1 1.57
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.2 0.9 1
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder { height 0.05  radius 0.005 }
+                }
+              ]
+              name "slow_helix4"
+            }
+          }
+          # Buoy (beyond thruster, at arm tip)
+          DEF BUOY41 Solid {
+            translation 0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 1 0.9 0.1
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy41"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+          DEF BUOY42 Solid {
+            translation -0.05 0 -0.15
+            rotation 1 0 0 -1.5707953071795862
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 1 0.9 0.1
+                  roughness 1
+                  metalness 0
+                }
+                geometry Capsule { height 0.05  radius 0.035 }
+              }
+            ]
+            name "buoy42"
+            immersionProperties [
+              ImmersionProperties {
+                fluidName "swimming pool"
+                dragForceCoefficients 0.1 0 0
+                dragTorqueCoefficients 0.001 0 0
+                viscousResistanceTorqueCoefficient 0.005
+              }
+            ]
+            boundingObject Capsule { height 0.05  radius 0.035 }
+            physics Physics {
+              density -1
+              mass 0.027
+              centerOfMass [ 0 0 0 ]
+              inertiaMatrix [ 1 1 1  0 0 0 ]
+              damping Damping {}
+            }
+          }
+        ]
+        name "arm4"
+        boundingObject Box { size 0.015 0.015 0.3 }
+        physics Physics { density -1  mass 0.03 }
+      }
+
+
+      # ── Head marker (orientation indicator) ──────────────────────
+      DEF HEAD Solid {
+        translation -0.025 0.16 -0.025
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0 1 0.4
+              roughness 1
+              metalness 0
+            }
+            geometry Box { size 0.015 0.015 0.015 }
+          }
+        ]
+        name "head"
+      }
+
+      # ── GPS (with noise, matches real sensor) ─────────────────────
+      GPS {
+        translation 0 0.16 0
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 1 0 0
+              roughness 1
+              metalness 0
+            }
+            geometry Cylinder { height 0.02  radius 0.01 }
+          }
+        ]
+        accuracy 3
+        noiseCorrelation 0.9
+      }
+
+      # ── GPS (ideal, for supervisor use) ───────────────────────────
+      GPS {
+        name "a_gps"
+      }
+
+      # ── Compass ───────────────────────────────────────────────────
+      Compass {
+        rotation 0 1 0 2.3562
+      }
+
+    ] # end children
+
+    immersionProperties [
+      ImmersionProperties {
+        fluidName "swimming pool"
+        dragForceCoefficients 0.1 0 0
+        dragTorqueCoefficients 0.001 0 0
+        viscousResistanceTorqueCoefficient 0.005
+      }
+    ]
+    boundingObject USE CHAMBER_SHAPE
+    physics Physics {
+      density 200
+      centerOfMass [ 0 -0.3 0 ]
+    }
+  }
+}
