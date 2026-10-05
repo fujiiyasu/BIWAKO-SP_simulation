@@ -8,7 +8,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 1 0 0 4.71238898038469
-  position -0.0204408227825148 10.01267941927437 -0.13744330828610524
+  position 0 48.19822071878687 -8.824814432271224e-15
   followType "None"
 }
 TexturedBackground {
@@ -44,6 +44,7 @@ DEF STILL_WATER Fluid {
     }
   ]
   name "swimming pool"
+  streamVelocity 0.04868430847768899 0 0.15378119631167048
   boundingObject USE WATER_SHAPE
   locked TRUE
 }
@@ -82,7 +83,6 @@ DEF WP1 Solid {
     }
   ]
 }
-
 DEF WP2 Solid {
   children [
     Shape {
@@ -98,7 +98,6 @@ DEF WP2 Solid {
     }
   ]
 }
-
 DEF WP3 Solid {
   children [
     Shape {

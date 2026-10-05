@@ -729,7 +729,7 @@ PROTO BIWAKO8 [
             geometry Cylinder { height 0.02  radius 0.01 }
           }
         ]
-        accuracy 3
+        accuracy 1.5
         noiseCorrelation 0.9
       }
 

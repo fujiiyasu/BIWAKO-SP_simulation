@@ -48,7 +48,8 @@ desktop.ini
 # ============================================================
 # ログファイル
 *.log
+/controllers/BIWAKO-SP/csv/
 
 # データ出力（必要なら除外）
-# results/
+results/
 # output/
